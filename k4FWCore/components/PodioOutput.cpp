@@ -32,8 +32,9 @@ void PodioOutput::resetBranches(const std::vector<std::pair<std::string, podio::
     auto collName = collNamePair.first;
     if (m_switch.isOn(collName)) {
       // Reconnect branches and collections
-      m_datatree->SetBranchAddress(collName.c_str(), collNamePair.second->getBufferAddress());
-      auto colls = collNamePair.second->referenceCollections();
+      const auto collBuffers = collNamePair.second->getBuffers();
+      m_datatree->SetBranchAddress(collName.c_str(), collBuffers.data);
+      auto colls = collBuffers.references;
       if (colls != nullptr) {
         int j = 0;
         for (auto& c : (*colls)) {
@@ -41,7 +42,7 @@ void PodioOutput::resetBranches(const std::vector<std::pair<std::string, podio::
           ++j;
         }
       }
-      auto colls_v = collNamePair.second->vectorMembers();
+      auto colls_v = collBuffers.vectorMembers;
       if (colls_v != nullptr) {
         int j = 0;
         for (auto& c : (*colls_v)) {
@@ -63,9 +64,10 @@ void PodioOutput::createBranches(const std::vector<std::pair<std::string, podio:
     int isOn = 0;
     if (m_switch.isOn(collName)) {
       isOn = 1;
-      m_datatree->Branch(collName.c_str(), collClassName.c_str(), collNamePair.second->getBufferAddress());
+      const auto collBuffers = collNamePair.second->getBuffers();
+      m_datatree->Branch(collName.c_str(), collClassName.c_str(), collBuffers.data);
       // Create branches for collections holding relations
-      auto colls = collNamePair.second->referenceCollections();
+      auto colls = collBuffers.references;
       if (colls != nullptr) {
         int j = 0;
         for (auto& c : (*colls)) {
@@ -74,7 +76,7 @@ void PodioOutput::createBranches(const std::vector<std::pair<std::string, podio:
         }
       }
       // ---- vector members
-      auto vminfo = collNamePair.second->vectorMembers();
+      auto vminfo = collBuffers.vectorMembers;
       if (vminfo != nullptr){
         int i = 0;
         for(auto& c : (*vminfo)){
